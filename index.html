@@ -3,54 +3,37 @@
 <html lang="bs">
 <head>
 <meta charset="UTF-8">
-<title>StudyTrack PRO</title>
+<title>StudyTrack ULTRA</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #0b1e3c;
     color: white;
     display: flex;
     justify-content: center;
-    margin-top: 50px;
+    margin-top: 30px;
 }
 
 .container {
-    width: 350px;
+    width: 400px;
     background: #122b50;
     padding: 20px;
     border-radius: 10px;
 }
 
-h1 {
-    text-align: center;
-}
-
-.input-section {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-input {
-    flex: 1;
+input, button {
     padding: 8px;
     border-radius: 5px;
     border: none;
+    margin: 5px 0;
 }
 
 button {
-    padding: 8px;
     background: #2ecc71;
-    border: none;
-    border-radius: 5px;
     cursor: pointer;
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
 }
 
 li {
@@ -60,133 +43,138 @@ li {
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     cursor: pointer;
 }
 
-li.completed {
+.completed {
     text-decoration: line-through;
     opacity: 0.6;
 }
 
-.stats {
-    margin-top: 15px;
-    text-align: center;
-}
-
-.small {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.delete-btn {
+.delete {
     background: red;
     color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 5px;
-    cursor: pointer;
 }
 </style>
 
 </head>
+
 <body>
 
 <div class="container">
-    <h1>StudyTrack PRO</h1>
-    <p>Organizuj svoje zadatke</p>
 
-```
-<div class="input-section">
-    <input type="text" id="taskInput" placeholder="Unesi zadatak..." onkeypress="if(event.key==='Enter') addTask()">
-    <input type="date" id="taskDate">
-    <button onclick="addTask()">Dodaj</button>
-</div>
+<h2 id="userTitle"></h2>
+
+<input id="username" placeholder="Unesi ime">
+<button onclick="saveUser()">Login</button>
+
+<hr>
+
+<input id="taskInput" placeholder="Zadatak">
+<input type="datetime-local" id="taskTime">
+<button onclick="addTask()">Dodaj</button>
 
 <ul id="taskList"></ul>
 
-<div class="stats">
-    Završeno: <span id="completed">0</span> /
-    Ukupno: <span id="total">0</span>
-    <br>
-    📊 Napredak: <span id="progress">0%</span>
-</div>
-```
+<canvas id="chart"></canvas>
 
 </div>
 
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let username = localStorage.getItem("username") || "";
 
-function addTask() {
-    const input = document.getElementById("taskInput");
-    const dateInput = document.getElementById("taskDate");
+document.getElementById("userTitle").innerText = username ? "👋 " + username : "";
 
-    const text = input.value.trim();
-    const date = dateInput.value;
-
-    if (text === "") return;
-
-    tasks.push({ text: text, done: false, date: date });
-
-    input.value = "";
-    dateInput.value = "";
-
-    renderTasks();
+function saveUser(){
+    username = document.getElementById("username").value;
+    localStorage.setItem("username", username);
+    location.reload();
 }
 
-function toggleTask(index) {
-    tasks[index].done = !tasks[index].done;
-    renderTasks();
+function addTask(){
+    let text = document.getElementById("taskInput").value;
+    let time = document.getElementById("taskTime").value;
+
+    if(!text) return;
+
+    tasks.push({text, done:false, time});
+    render();
 }
 
-function deleteTask(index) {
-    tasks.splice(index, 1);
-    renderTasks();
+function toggle(i){
+    tasks[i].done = !tasks[i].done;
+    render();
 }
 
-function renderTasks() {
-    const list = document.getElementById("taskList");
-    list.innerHTML = "";
+function del(i){
+    tasks.splice(i,1);
+    render();
+}
 
-    let completed = 0;
+function render(){
+    let list = document.getElementById("taskList");
+    list.innerHTML="";
 
-    tasks.forEach((task, index) => {
-        const li = document.createElement("li");
+    let done = 0;
 
-        const left = document.createElement("div");
-        left.innerHTML = task.text + (task.date ? "<br><span class='small'>📅 " + task.date + "</span>" : "");
+    tasks.forEach((t,i)=>{
+        let li = document.createElement("li");
 
-        if (task.done) {
-            li.classList.add("completed");
-            completed++;
-        }
+        if(t.done){ li.classList.add("completed"); done++; }
 
-        li.onclick = () => toggleTask(index);
+        li.innerHTML = t.text + "<br><small>"+ (t.time || "") +"</small>";
 
-        const btn = document.createElement("button");
-        btn.textContent = "❌";
-        btn.className = "delete-btn";
+        li.onclick=()=>toggle(i);
 
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            deleteTask(index);
-        };
+        let b = document.createElement("button");
+        b.innerText="❌";
+        b.className="delete";
 
-        li.appendChild(left);
-        li.appendChild(btn);
+        b.onclick=(e)=>{ e.stopPropagation(); del(i); };
 
+        li.appendChild(b);
         list.appendChild(li);
     });
 
-    document.getElementById("completed").textContent = completed;
-    document.getElementById("total").textContent = tasks.length;
-
-    let percent = tasks.length === 0 ? 0 : Math.round((completed / tasks.length) * 100);
-    document.getElementById("progress").textContent = percent + "%";
-
     localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    drawChart(done, tasks.length);
 }
+
+function drawChart(done,total){
+    let ctx = document.getElementById("chart");
+
+    if(window.myChart) window.myChart.destroy();
+
+    window.myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Završeno', 'Preostalo'],
+            datasets: [{
+                data: [done, total-done],
+            }]
+        }
+    });
+}
+
+function checkReminders(){
+    let now = new Date().toISOString().slice(0,16);
+
+    tasks.forEach(t=>{
+        if(t.time === now && !t.done){
+            new Notification("⏰ Podsjetnik: " + t.text);
+        }
+    });
+}
+
+if(Notification.permission !== "granted"){
+    Notification.requestPermission();
+}
+
+setInterval(checkReminders, 60000);
+
+render();
 </script>
 
 </body>
