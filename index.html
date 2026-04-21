@@ -120,7 +120,11 @@ function register(){
 
 function login(){
     signInWithEmailAndPassword(auth, email.value, password.value)
-    .catch(e=> alert(e.message));
+    .then(()=> alert("Ulogovan si"))
+    .catch(e=> {
+        console.log(e);
+        alert(e.message);
+    });
 }
 
 function logout(){
