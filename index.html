@@ -3,51 +3,120 @@
 <html lang="bs">
 <head>
 <meta charset="UTF-8">
-<title>StudyTrack CLOUD</title>
+<title>StudyTrack PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
-    font-family: Arial;
-    background: linear-gradient(135deg,#0b1e3c,#1c3b6e);
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color: white;
     display: flex;
     justify-content: center;
-    margin-top: 30px;
+    padding: 20px;
 }
 
 .container {
-    width: 420px;
-    background: rgba(255,255,255,0.05);
-    padding: 20px;
-    border-radius: 15px;
+    width: 900px;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.3);
+}
+
+h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    opacity: 0.7;
+    margin-bottom: 20px;
 }
 
 input, button {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 10px;
     border: none;
 }
 
-button { background: #2ecc71; cursor: pointer; }
-.logout { background: red; }
+button {
+    background: linear-gradient(45deg,#2ecc71,#27ae60);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-li {
-    background: rgba(255,255,255,0.1);
-    margin: 5px;
-    padding: 10px;
-    border-radius: 8px;
+button:hover {
+    transform: scale(1.05);
+}
+
+.logout {
+    background: #e74c3c;
+}
+
+.top-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.top-bar input {
+    flex: 1;
+}
+
+.main {
+    display: flex;
+    gap: 20px;
+}
+
+.left, .right {
+    flex: 1;
+}
+
+.card {
+    background: rgba(255,255,255,0.08);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.task {
     display: flex;
     justify-content: space-between;
-    cursor: pointer;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    transition: 0.3s;
+}
+
+.task:hover {
+    transform: scale(1.02);
 }
 
 .completed {
     text-decoration: line-through;
-    opacity: 0.6;
+    opacity: 0.5;
 }
+
+.time {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.history-item {
+    font-size: 14px;
+    padding: 5px 0;
+    border-left: 2px solid #2ecc71;
+    padding-left: 10px;
+}
+
 </style>
 
 </head>
@@ -56,7 +125,8 @@ li {
 
 <div class="container">
 
-<h2 id="title">StudyTrack</h2>
+<h1>📘 StudyTrack</h1>
+<div class="subtitle">Organizuj svoj uspeh</div>
 
 <div id="auth">
 <input id="email" placeholder="Email">
@@ -66,104 +136,103 @@ li {
 </div>
 
 <div id="app" style="display:none">
+
 <button class="logout" onclick="logout()">Logout</button>
 
-<input id="taskInput" placeholder="Zadatak">
+<div class="top-bar">
+<input id="taskInput" placeholder="Dodaj zadatak...">
 <input type="datetime-local" id="taskTime">
-<button onclick="addTask()">Dodaj</button>
+<button onclick="addTask()">➕</button>
+</div>
 
-<ul id="taskList"></ul>
+<div class="main">
 
+<div class="left">
+
+<div class="card">
 <canvas id="chart"></canvas>
+</div>
+
+<div id="taskList"></div>
+
+</div>
+
+<div class="right">
+
+<div class="card">
+<h3>📜 History</h3>
+<div id="historyList"></div>
+</div>
+
+</div>
 
 </div>
 
 </div>
 
-<!-- 🔥 FIREBASE -->
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAacLUBW1jTTq09ZG1AsxHgJ69F5W9TgdM",
+  apiKey: "AIzaSy...",
   authDomain: "study-truck.firebaseapp.com",
   projectId: "study-truck",
-  storageBucket: "study-truck.firebasestorage.app",
-  messagingSenderId: "181921831800",
-  appId: "1:181921831800:web:7d2636de20ca03aa5bc68d"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// izvoz u global
 window.auth = auth;
 window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOut = signOut;
 </script>
 
-<!-- 🔥 APP -->
-
 <script>
-let tasks = [];
-let currentUser = null;
+let tasks=[];
+let currentUser=null;
 
 function register(){
-    createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then((userCredential)=>{
-        currentUser = userCredential.user;
-        showApp();
-    })
-    .catch(e=> alert(e.message));
+    createUserWithEmailAndPassword(auth,email.value,password.value)
+    .then(res=>{currentUser=res.user;showApp();})
+    .catch(e=>alert(e.message));
 }
 
 function login(){
-    signInWithEmailAndPassword(auth, email.value, password.value)
-    .then((userCredential)=>{
-        currentUser = userCredential.user;
-        showApp();
-    })
-    .catch(e=> alert(e.message));
+    signInWithEmailAndPassword(auth,email.value,password.value)
+    .then(res=>{currentUser=res.user;showApp();})
+    .catch(e=>alert(e.message));
 }
 
-function logout(){
-    signOut(auth);
-    location.reload();
-}
+function logout(){signOut(auth);location.reload();}
 
 function showApp(){
-    document.getElementById("auth").style.display="none";
-    document.getElementById("app").style.display="block";
+    auth.style.display="none";
+    app.style.display="block";
     loadTasks();
 }
 
 function loadTasks(){
-    tasks = JSON.parse(localStorage.getItem("tasks_"+currentUser.uid)) || [];
+    tasks=JSON.parse(localStorage.getItem("tasks_"+currentUser.uid))||[];
     render();
 }
 
 function saveTasks(){
-    localStorage.setItem("tasks_"+currentUser.uid, JSON.stringify(tasks));
+    localStorage.setItem("tasks_"+currentUser.uid,JSON.stringify(tasks));
 }
 
 function addTask(){
-    if(!taskInput.value) return;
-
-    tasks.push({
-        text: taskInput.value,
-        time: taskTime.value,
-        done:false
-    });
-
+    if(!taskInput.value)return;
+    tasks.push({text:taskInput.value,time:taskTime.value,done:false});
     saveTasks();
     render();
 }
 
 function toggle(i){
-    tasks[i].done = !tasks[i].done;
+    tasks[i].done=!tasks[i].done;
     saveTasks();
     render();
 }
@@ -175,63 +244,64 @@ function del(i){
 }
 
 function render(){
-    let list = document.getElementById("taskList");
+    let list=document.getElementById("taskList");
+    let history=document.getElementById("historyList");
+
     list.innerHTML="";
+    history.innerHTML="";
 
     let done=0;
 
     tasks.forEach((t,i)=>{
-        let li=document.createElement("li");
+        let div=document.createElement("div");
+        div.className="task";
 
-        if(t.done){ li.classList.add("completed"); done++; }
+        if(t.done){div.classList.add("completed");done++;}
 
-        li.innerHTML=t.text+"<br><small>"+(t.time||"")+"</small>";
+        div.innerHTML=`
+            <div>
+                ${t.text}
+                <div class="time">${t.time||""}</div>
+            </div>
+        `;
 
-        li.onclick=()=>toggle(i);
+        div.onclick=()=>toggle(i);
 
         let b=document.createElement("button");
         b.innerText="❌";
-        b.onclick=(e)=>{ e.stopPropagation(); del(i); };
+        b.onclick=(e)=>{e.stopPropagation();del(i);};
 
-        li.appendChild(b);
-        list.appendChild(li);
+        div.appendChild(b);
+        list.appendChild(div);
+
+        if(t.done){
+            let h=document.createElement("div");
+            h.className="history-item";
+            h.innerText="✔ "+t.text;
+            history.appendChild(h);
+        }
     });
 
-    drawChart(done, tasks.length);
+    drawChart(done,tasks.length);
 }
 
 function drawChart(done,total){
     let ctx=document.getElementById("chart");
 
-    if(window.myChart) window.myChart.destroy();
+    if(window.myChart)window.myChart.destroy();
 
     window.myChart=new Chart(ctx,{
         type:'doughnut',
         data:{
-            labels:['Završeno','Preostalo'],
-            datasets:[{data:[done,total-done]}]
-        }
+            labels:['Završeno','Nezavršeno'],
+            datasets:[{
+                data:[done,total-done],
+                backgroundColor:['#2ecc71','#e74c3c']
+            }]
+        },
+        options:{animation:{animateScale:true}}
     });
 }
-
-// 🔔 reminder
-function checkReminders(){
-    let now = new Date();
-
-    let localTime = now.getFullYear()+"-"+
-    String(now.getMonth()+1).padStart(2,'0')+"-"+
-    String(now.getDate()).padStart(2,'0')+"T"+
-    String(now.getHours()).padStart(2,'0')+":"+
-    String(now.getMinutes()).padStart(2,'0');
-
-    tasks.forEach(t=>{
-        if(t.time === localTime && !t.done){
-            alert("⏰ "+t.text);
-        }
-    });
-}
-
-setInterval(checkReminders,60000);
 </script>
 
 </body>
