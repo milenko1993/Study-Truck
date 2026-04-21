@@ -26,41 +26,61 @@ body {
     justify-content: space-between;
 }
 
+/* CONTAINER */
 .container {
     width: 1000px;
     margin: auto;
     padding: 20px;
 }
 
-/* 🔥 VEĆA POLJA */
+/* 🔥 LOGIN BLOK */
+#auth {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 🔥 INPUTI */
 input {
-    padding: 14px;
+    padding: 12px;
     border-radius: 10px;
     border: none;
     margin: 6px;
-    width: 100%;
 }
 
+/* 👇 LOGIN inputi malo veći (ali ne previše) */
+#auth input {
+    width: 280px;
+}
+
+/* ostali inputi */
+.top-bar input {
+    flex: 1;
+}
+
+/* BUTTON */
 button {
-    padding: 12px;
+    padding: 10px 16px;
     border-radius: 10px;
     border: none;
     margin: 6px;
     background: #2ecc71;
     color: white;
     cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
 }
 
 .logout { background: #e74c3c; }
 
+/* TOP BAR */
 .top-bar {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-}
-
-.top-bar input {
-    flex: 1;
 }
 
 /* DASHBOARD */
@@ -76,11 +96,11 @@ button {
     border-radius: 15px;
 }
 
-/* 🔥 MANJI TASKOVI */
+/* TASK */
 .task {
     display: flex;
     justify-content: space-between;
-    padding: 8px; /* SMANJENO */
+    padding: 8px;
     margin: 6px 0;
     background: rgba(255,255,255,0.1);
     border-radius: 8px;
@@ -103,11 +123,13 @@ button {
     opacity: 0.5;
 }
 
+/* STATS */
 .stats {
     text-align: center;
     margin-top: 10px;
 }
 
+/* HISTORY */
 .history-item {
     border-left: 3px solid #2ecc71;
     padding-left: 10px;
@@ -145,6 +167,8 @@ button {
 
 <div class="dashboard">
 
+<!-- 📊 STATISTIKA -->
+
 <div class="column">
 <h3>📊 Statistika</h3>
 <canvas id="chart"></canvas>
@@ -156,10 +180,14 @@ Procenat: <span id="percent">0%</span>
 </div>
 </div>
 
+<!-- 📋 ZADACI -->
+
 <div class="column">
 <h3>📋 Zadaci</h3>
 <div id="taskList"></div>
 </div>
+
+<!-- 📜 HISTORY -->
 
 <div class="column">
 <h3>📜 Istorija Zadataka</h3>
@@ -231,8 +259,7 @@ function addTask(){
     tasks.push({
         text:taskInput.value,
         time:taskTime.value,
-        done:false,
-        notified:false
+        done:false
     });
 
     saveTasks();
